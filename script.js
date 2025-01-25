@@ -1,10 +1,12 @@
-//třída reprezentuje hracovu ikonu
+//Třída1 - pamatující pozici hráče, informací o levelu/smrtech/souřadnic
+
 class Player {
 	#x;
 	#y;
 	#level;
 	#deaths;
 	#level_deaths;
+	#deaths_total;
 
 	constructor() {
 		this.#level = 1;
@@ -12,9 +14,11 @@ class Player {
 		this.#y = 2;
 		this.#deaths = 0;
 		this.#level_deaths = 0;
+		this.#deaths_total = localStorage.getItem("minefield-escape-total-deaths");
+
 	}
 
-//zjištování XY polohy hráče pri potřebe
+//zjištování XY polohy hráče při potřebě
 	get_x() {
 		return this.#x;
 	}
@@ -24,7 +28,7 @@ class Player {
 	}
 
 	
-//nastavují pozici hráče
+//definice funkcí pro jiné třídy
 	set_x(x) {
 		this.#x = x;
 	}
@@ -48,45 +52,50 @@ class Player {
 	die() {
 		this.#deaths++;
 		this.#level_deaths++;
+		this.#deaths_total++;
+		localStorage.setItem("minefield-escape-total-deaths", this.#deaths_total);
 	}
 
+	// výpočty pro nový level
 	levelup() {
-		this.#level++;
-		// výpočet informace pro starting point políčka nového levelu
-		this.#x = this.#level + 1;
-		this.#y = this.#x; //jelikož je pole čtverec
-		this.#level_deaths = 0; //zatím jsme v tomto levelu neumřeli
+		this.#level++; 
+		this.#x = this.#level + 1; //střed
+		this.#y = this.#x; //(jelikož je pole čtverec)
+		this.#level_deaths = 0; //zatím jsme v tomto novém levelu neumřeli
 	}
 }
 
 
+
+//Třída 2 - aktualizující vykreslování plochy
+
 class Renderer {
 	constructor() {}
 
-	//level splněn/game over: smaže se veškerá grafika
+	//level splněn/game over => mažou se veškerá grafika
 	full_render(player, grid, gameover) {
 		let gamediv = document.getElementById("game");
 		gamediv.innerHTML = "";
 		let table = document.createElement("table");
-		let size = 3 + player.get_level() * 2;
+		let size = 3 + player.get_level() * 2; //formula nové velikosti pole
 		
 		
 		for(let i = 0; i < size; i++) {
-			let el = document.createElement("tr");  //pro každý i vytvoří řádek html tabulky
+			let el = document.createElement("tr");  //pro každý i se tvoří řádek html tabulky
 			for(let j = 0; j < size; j++) {
 			
-				let tile = document.createElement("td"); //pro každý j vytvoři buňku řádku tabulky
+				let tile = document.createElement("td"); //pro každý j se tvoří buňka řádku tabulky
 				tile.setAttribute("id", "x_" + j + "y_" + i); //registrování html id políček
 				
 				if(gameover == true && grid[j][i] == true) {
 					tile.innerHTML = "<img src='mine.png'>"; //obrázek miny
 					
 				} else if(j == player.get_x() && i == player.get_y()) { 
-					tile.innerHTML = "<img src='player.png'>"; //obrazek panačka
+					tile.innerHTML = "<img src='player.png'>"; //obrazek panáčka
 				}
-				el.appendChild(tile); //vloží vytvořený td do tr
+				el.appendChild(tile); //vkládá vytvořený td do tr
 			}
-			table.appendChild(el); //vloží tr do table
+			table.appendChild(el); //vkládá tr do tabulky
 		}
 		
 		gamediv.appendChild(table); //vloží table do divu
@@ -97,6 +106,8 @@ class Renderer {
 		aside.innerHTML += "<b>Deaths: <b>" + player.get_deaths() + "<br>";
 		aside.innerHTML += "<b>Deaths this level: <b>" + player.get_level_deaths() + "<br><br>";
 		aside.innerHTML += "<b>Top level reached: <b>" + localStorage.getItem("minefield-escape-hiscore") + "<br><br>";
+		aside.innerHTML += "<b>Total deaths: <b>" + localStorage.getItem("minefield-escape-total-deaths") + "<br><br>";
+		aside.innerHTML += `<button id="hardmode-btn" onclick="toggleHardmode(this)">Hardmode</button>`;
 	}
 
 	//rendruje jenom hrace
@@ -115,24 +126,31 @@ class Renderer {
 	}
 }
 
-//reprezentuje celé herní pole
+
+//Třída 3 - reprezentující logiku herního pole
+
 class GameField {
 	#grid; //proměnná držící dvourozměrné pole plochy
-	#player; //instance trídy Player
-	#renderer; //instance trídy Renderer
+	#player; //instance třídy Player
+	#renderer; //instance třídy Renderer
 	#game_over; //bool
-	#high_score //int
+	#high_score; //int
+	#deaths_total; //counter
+	#death_memorizer; //memory
 
 	constructor(p, r) {
 		this.#player = p;
 		this.#renderer = r;
 		this.#game_over = false;
 		this.#high_score = localStorage.getItem("minefield-escape-hiscore");
+		this.#deaths_total = localStorage.getItem("minefield-escape-total-deaths");
+
 		if(this.#high_score == null) {
 			this.#high_score = 1;
 			localStorage.setItem("minefield-escape-hiscore", 1);
+			localStorage.setItem("minefield-escape-total-deaths", 0);
 		}
-		this.#generate_board(1); //volá funkci vykreslující gameboard každý level
+		this.#generate_board(1); //volá vykreslení vždy při novém levelu
 	}
 
 	//generuje level
@@ -150,10 +168,10 @@ class GameField {
 		let cur_x = (size - 1) / 2;
 		let cur_y = (size - 1) / 2;
 		
-		//ODKLÍZEČ MIN dokud ^ souřadnice nejsou na hraně pole, opakuje se tento while
+		//ODKLÍZEČ MIN MAIN CESTY dokud ^ souřadnice nejsou na hraně pole, opakuje:
 		while(cur_x != (size - 1) && cur_y != (size - 1) && cur_x != 0 && cur_y != 0) {
 			this.#grid[cur_x][cur_y] = false; //odstrani minu na daném políčku
-			let move = Math.random(); //podle nahodnosti:
+			let move = Math.random(); //podle náhodnosti:
 			if(move < 0.25) cur_x--; //doleva
 			else if(move < 0.5) cur_x++; //doprava
 			else if(move < 0.75) cur_y--; //nahoru
@@ -162,15 +180,18 @@ class GameField {
 		this.#grid[cur_x][cur_y] = false; //generace vychodu
 		
 		//projede grid a odstrani 50% zbývajících min (mimo cestu)
-		for(let i = 0; i < size; i++) {
-			for(let j = 0; j < size; j++) {
-				if(this.#grid[i][j]) {
-					if(Math.random() < 0.5) this.#grid[i][j] = false;
+		if (hardmodeEnabled == true) {
+			for(let i = 0; i < size; i++) {
+				for(let j = 0; j < size; j++) {
+					if(this.#grid[i][j]) {
+						if(Math.random() < 0.5) this.#grid[i][j] = false;
+					}
 				}
 			}
 		}
 	}
 
+	//rendruje momentální pozici hráče
 	render() {
 		this.#renderer.render(this.#player);
 	}
@@ -183,19 +204,19 @@ class GameField {
 		this.#renderer.full_render(this.#player, null, false);
 	}
 
-	//zajistuje hybání hráče
+	//zajišťuje posouvání hráče
 	move(dir) {
 		if(this.#game_over) { //game over -> resetpozice hráče
 			this.#player.set_x(1 + this.#player.get_level());
 			this.#player.set_y(1 + this.#player.get_level());
 			this.render_newgame();
-			this.#game_over = false; //začnu novou hru po prohrání
+			this.#game_over = false; //začne novou hru po prohrání
 			return;
 		}
 		let win = false;
 		
 		
-		//RESI SE POHYB + když na konci pohybové zony: deklarace zon kde hrac vyhrává
+		//řešení pohybu + deklarace zón kde hrac vyhrává
 		switch(dir) {
 		
 			case "left":
@@ -224,7 +245,7 @@ class GameField {
 			alert("Game Over!");
 		} 
 		
-		else { //mina na políčku aktuálního pohybu není
+		else { //mina na políčku momentálního pohybu není
 			if(win == true) {
 				alert("You Win!");
 				this.#player.levelup();
@@ -241,13 +262,23 @@ class GameField {
 	}
 }
 
-//vykoná se při načtení stránky (zahájení hry)
+
+// globální proměnná - sledování
+let hardmodeEnabled = true; 
+
+// hardmode
+function toggleHardmode(button) {
+hardmodeEnabled = !hardmodeEnabled;
+}
+
+
+//při zahájení hry/načtení stránky:
 let p = new Player();
 let r = new Renderer();
 let g = new GameField(p, r);
 g.render_newgame();
 
-//zavede možnost kontroly pohybu šipkami
+//kontrola pomocí šipek
 let b = document.getElementById("body");
 b.addEventListener('keydown', (event) => {
 	const key = event.key;
