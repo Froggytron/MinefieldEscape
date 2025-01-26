@@ -24,9 +24,9 @@ Tento projekt je hra sestavená zejména v JavaScriptu, níže jsou její hlavn�
 Hra se zejména skládá z klasické html tabulky, do níž se generují obrázky min a panáčka (hráče). S každým pohybem se generuje obraz kolem hráče znovu. Hra též přikládá textové informace v pravém horním rohu.
 
 
-### Class Diagram
+### US diagram
 
-![Class Diagram](Class_Diagram_MinefieldEscape.png)
+![UseCase diagram](US_diagram_ME.png)
 
 
 Technická specifikace
@@ -42,9 +42,9 @@ Technická specifikace
 *   Výhra se detekuje v momentě, kdy panáček vedený hráčem úspěšně opustí herní plochu. Prohra nastává, když se panáček naskytne na stejném políčku, jako je mina. Prohra ukáže hráči pozice min, aby si mohl cestu lépe memorizovat a měl vyšší šance vyhrání příště.
 
 
-### Class diagram
+### Class Ddiagram
 
-*   In this folder
+![Class diagram](Class_diagram_ME.png)
 
 
 
