@@ -18,6 +18,12 @@ Tento projekt je hra sestavená zejména v JavaScriptu, níže jsou její hlavn�
 *   cílem je trénování všímavosti a krátkodobé paměti hráče
 
 
+### Licence/License
+
+*  Při kreditaci autora (Froggytron -> https://fcoc-vs-battles.fandom.com/wiki/User:Froggytron) jde sdílet, kopírovat a upravovat :]
+*  With crediting the author (Froggytron -> https://fcoc-vs-battles.fandom.com/wiki/User:Froggytron), you can share, copy and alter this project :]
+
+
 ### Uživatelské rozhraní
 
 Hra se zejména skládá z klasické html tabulky, do níž se generují obrázky min a panáčka (hráče). S každým pohybem se generuje obraz kolem hráče znovu. Hra též přikládá textové informace v pravém horním rohu.
@@ -39,4 +45,8 @@ Technická specifikace
 *   Výhra se detekuje v momentě, kdy panáček vedený hráčem úspěšně opustí herní plochu. Prohra nastává, když se panáček naskytne na stejném políčku, jako je mina. Prohra ukáže hráči pozice min, aby si mohl cestu lépe memorizovat a měl vyšší šance vyhrání příště.
 
 ### Class diagram
+
+*   In this folder
+
+
 

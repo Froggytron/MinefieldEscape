@@ -102,8 +102,8 @@ class Renderer {
 
 		//načtení zobrazení statistiky napravo nahoře
 		let aside = document.getElementById("aside");
-		aside.innerHTML = "<b>Level: <b>" + player.get_level() + "<br>";
-		aside.innerHTML += "<b>Deaths: <b>" + player.get_deaths() + "<br>";
+		aside.innerHTML = "<b>Level: <b>" + player.get_level() + "<br><br>";
+		aside.innerHTML += "<b>Deaths: <b>" + player.get_deaths() + "<br><br>";
 		aside.innerHTML += "<b>Deaths this level: <b>" + player.get_level_deaths() + "<br><br>";
 		aside.innerHTML += "<b>Top level reached: <b>" + localStorage.getItem("minefield-escape-hiscore") + "<br><br>";
 		aside.innerHTML += "<b>Total deaths: <b>" + localStorage.getItem("minefield-escape-total-deaths") + "<br><br>";
